@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; python3 src/main.py'
+    volumes:
+      - .:/app
+    ports:
+      - 8080:8000
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/async_5
+      - PROJECT_NAME=async_5
+      - PROJECT_HOST=0.0.0.0
+      - PROJECT_PORT=8000
+      - SECRET=SECRET
+    depends_on:
+      - db
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=async_5
+
+volumes:
+  postgres_data:
