@@ -5,17 +5,20 @@ import sys
 from sqlalchemy import insert
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
+import logging.config
+import yaml
+import asyncio
 #fix import issues
 sys.path.insert(0, os.getcwd())
 
 from src.api.routes import router
 from src.core.config import settings
-from src.models.models import URLS, History
 from src.db.db import get_async_session, engine
-from src.services.crud import create
 from src.auth.routes import fastapi_users
 from src.auth.auth_backend import auth_backend
 from src.models.schemas import UserRead, UserCreate
+from src.models.models import init_models
 
 
 app = FastAPI(
@@ -48,12 +51,18 @@ app.include_router(
     tags=['api']
 )
 
-@app.on_event('startup')
-async def startup():
-    await create(session=sessionmaker(engine, expire_on_commit=False, class_=AsyncSession))
+# @app.on_event('startup')
+# async def startup():
+#     await create(session=sessionmaker(engine, expire_on_commit=False, class_=AsyncSession))
 
 
 if __name__ == "__main__":
+    asyncio.run(init_models())
+    with open('src/core/logging_config.yml') as f:
+        config = yaml.safe_load(f.read())
+        logging.config.dictConfig(config)
+
+
     uvicorn.run(
         'main:app',
         host=settings.host,

@@ -1,0 +1,26 @@
+version: 1
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s -%(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: simple
+    filename: 'async_5.log'
+    maxBytes: 52428800
+    backupCount: 7
+
+loggers:
+  sampleLogger:
+    level: DEBUG
+    handlers: [console, file]
+    propagate: yes
+root:
+  level: DEBUG
+  handlers: [console, file]
