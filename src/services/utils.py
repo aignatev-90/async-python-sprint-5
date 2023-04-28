@@ -3,11 +3,14 @@ import os.path
 from sqlalchemy.ext.declarative import declarative_base
 from typing import List
 import json
-from fastapi import UploadFile
+from fastapi import UploadFile, Depends
 from datetime import datetime
 from pathlib import Path
 import logging
 from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from src.db.db import get_async_session
 
 
 
@@ -45,3 +48,28 @@ def get_or_create_path(path: str) -> None:
         os.mkdir(dir_path)
     except FileExistsError:
         logging.info(f'Directory {dir_path} already exists')
+
+
+async def get_path_by_file_id(
+        file_id: str,
+        model: declarative_base,
+        session: AsyncSession
+) -> str:
+    query = select(model.path).where(model.id == str(file_id))
+    path = await session.execute(query)
+    file_path = path.scalar()
+    return file_path
+
+async def get_path_to_file(
+        path: str,
+        session: AsyncSession,
+        model: declarative_base
+) -> str:
+    if '.' in path:
+        return path
+    path_to_file = await get_path_by_file_id(
+        path,
+        session=session,
+        model=model
+    )
+    return path_to_file

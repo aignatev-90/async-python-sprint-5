@@ -7,12 +7,13 @@ import os
 from src.core.config import settings
 from datetime import datetime
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, insert
 from .utils import serialize_data, get_creation_date
 from fastapi import UploadFile
 import aiofiles
-from sqlalchemy import insert
 from sqlalchemy.exc import SQLAlchemyError
+import json
+from fastapi.encoders import jsonable_encoder
 
 
 async def get_users(model: declarative_base, session: AsyncSession):
@@ -23,7 +24,7 @@ async def get_users(model: declarative_base, session: AsyncSession):
         result = serialize_data(model, res)
     except SQLAlchemyError:
         result = {'status': 'something gone wrong'}
-    return result
+    return jsonable_encoder(result)
 
 
 async def show_services_info(session: AsyncSession) -> dict:
@@ -82,3 +83,19 @@ async def create_file_metadata(
     await session.execute(stmt)
     await session.commit()
     logging.info(f'New record in db {model.__tablename__} for file {filename}')
+    #TODO add json with response
+
+async def retrieve_files_data(user: User, session: AsyncSession, model: declarative_base):
+    query = select(
+        model.id,
+        model.name,
+        model.created_at,
+        model.path,
+        model.size,
+        model.is_downloadable
+    ).where(model.parent_id == str(user.id))
+    result = await session.execute(query)
+    data = {'account_id': str(user.id), 'files': []}
+    for row in result:
+        data['files'].append(row._asdict())
+    return jsonable_encoder(data)

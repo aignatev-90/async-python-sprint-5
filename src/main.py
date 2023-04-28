@@ -9,6 +9,8 @@ import logging
 import logging.config
 import yaml
 import asyncio
+from watchgod import run_process
+
 #fix import issues
 sys.path.insert(0, os.getcwd())
 
@@ -19,6 +21,7 @@ from src.auth.routes import fastapi_users
 from src.auth.auth_backend import auth_backend
 from src.models.schemas import UserRead, UserCreate
 from src.models.models import init_models
+
 
 
 app = FastAPI(
@@ -56,15 +59,18 @@ app.include_router(
 #     await create(session=sessionmaker(engine, expire_on_commit=False, class_=AsyncSession))
 
 
-if __name__ == "__main__":
+def main():
     asyncio.run(init_models())
     with open('src/core/logging_config.yml') as f:
         config = yaml.safe_load(f.read())
         logging.config.dictConfig(config)
-
 
     uvicorn.run(
         'main:app',
         host=settings.host,
         port=int(settings.port),
     )
+
+
+if __name__ == "__main__":
+    run_process(os.getcwd(), main)
