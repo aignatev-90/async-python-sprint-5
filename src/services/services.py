@@ -1,3 +1,5 @@
+import uuid
+
 from src.models.models import User, FileMetaData
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import declarative_base
@@ -8,7 +10,7 @@ from src.core.config import settings
 from datetime import datetime
 import logging
 from sqlalchemy import select, insert
-from .utils import serialize_data, get_creation_date
+from .utils import serialize_data, get_creation_date, count_connection_time, uuid_row_to_str
 from fastapi import UploadFile
 import aiofiles
 from sqlalchemy.exc import SQLAlchemyError
@@ -30,22 +32,9 @@ async def get_users(model: declarative_base, session: AsyncSession):
 async def show_services_info(session: AsyncSession) -> dict:
     data = []
     db_time = await count_connection_time(connect_to_db, table=User, session=session)
-    folder_time = await count_connection_time(connect_to_storage, storage_path=settings.storage_path)
+    folder_time = await count_connection_time(connect_to_repository, repo_path=settings.storage_path)
     data.extend([db_time, folder_time])
     return dict(data)
-
-
-async def count_connection_time(func: callable, **kwargs) -> tuple:
-    start = datetime.now()
-    try:
-        await func(**kwargs)
-    except (ConnectionError, FileNotFoundError):
-        result = 'failed to connect'
-        logging.error(f'failed to {func.__name__}')
-    else:
-        result = (datetime.now() - start).total_seconds()
-        logging.info(f'succesfully counted time - {func.__name__}')
-    return func.__name__, result
 
 
 async def connect_to_db(table: declarative_base, session: AsyncSession) -> None:
@@ -53,8 +42,8 @@ async def connect_to_db(table: declarative_base, session: AsyncSession) -> None:
     r = await session.execute(query)
 
 
-async def connect_to_storage(storage_path: str) -> None:
-    os.listdir(storage_path)
+async def connect_to_repository(repo_path: str) -> None:
+    os.listdir(repo_path)
 
 
 async def upload_single_file(file: UploadFile, path: str) -> None:
@@ -71,19 +60,26 @@ async def create_file_metadata(
         model: declarative_base,
 
 ):
-    stmt = insert(model).values(
-        {
+    # user_id = user.id if user else uuid.uuid4()
+    exp = {
             'name': filename,
             'created_at': get_creation_date(out_path),
             'path': out_path,
             'size': os.path.getsize(out_path),
-            'parent_id': user.id,
+            'parent_id': user_id,
          }
-    )
-    await session.execute(stmt)
+    stmt = insert(model).values(exp)
+    result = await session.execute(stmt)
     await session.commit()
     logging.info(f'New record in db {model.__tablename__} for file {filename}')
-    #TODO add json with response
+    if 'is_downloadable' not in exp.keys():
+        exp['is_downloadable'] = 'True'
+    exp['created_at'] = exp['created_at'].strftime("%d.%m.%Y, %H:%M:%S")
+    del exp['parent_id']
+    items = list(exp.items())
+    items.insert(0, ('id', uuid_row_to_str(str(result.inserted_primary_key))))
+    return dict(items)
+
 
 async def retrieve_files_data(user: User, session: AsyncSession, model: declarative_base):
     query = select(

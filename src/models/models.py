@@ -5,7 +5,7 @@ from sqlalchemy import (JSON, DateTime, Column, ForeignKey,
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import backref, relationship
 import asyncio
-from src.db.db import Base, engine, get_async_session
+from src.db.db import Base, engine, get_async_session, metadata
 from typing import AsyncGenerator
 from fastapi import Depends
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
@@ -39,5 +39,6 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
 # async tables init
 async def init_models():
     async with engine.begin() as conn:
-        # await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
+        # await conn.run_sync(metadata.drop_all)
+        await conn.run_sync(metadata.create_all)
+

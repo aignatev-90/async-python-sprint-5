@@ -11,6 +11,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from src.db.db import get_async_session
+from pydantic import FilePath
 
 
 
@@ -60,12 +61,13 @@ async def get_path_by_file_id(
     file_path = path.scalar()
     return file_path
 
+
 async def get_path_to_file(
-        path: str,
+        path: FilePath,
         session: AsyncSession,
         model: declarative_base
 ) -> str:
-    if '.' in path:
+    if '.' in str(path):
         return path
     path_to_file = await get_path_by_file_id(
         path,
@@ -73,3 +75,21 @@ async def get_path_to_file(
         model=model
     )
     return path_to_file
+
+
+
+async def count_connection_time(func: callable, **kwargs) -> tuple:
+    start = datetime.now()
+    try:
+        await func(**kwargs)
+    except (ConnectionError, FileNotFoundError) as e:
+        logging.error(f'failed to {func.__name__}')
+        raise e
+    else:
+        result = (datetime.now() - start).total_seconds()
+        logging.info(f'succesfully counted time - {func.__name__}')
+    return func.__name__, result
+
+
+def uuid_row_to_str(uuid_id: str):
+    return uuid_id[7:-4]
