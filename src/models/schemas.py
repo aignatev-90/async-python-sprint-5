@@ -1,8 +1,9 @@
 import uuid
+from typing import List
 
 from fastapi_users import schemas
-from pydantic import BaseModel, Field, FilePath, constr
-from typing import List
+from pydantic import BaseModel, Field, constr
+
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
     pass
@@ -25,7 +26,7 @@ class FileCreate(BaseModel):
     id: constr(min_length=36, max_length=36)
     name: str
     created_at: str
-    path: str = FilePath
+    path: str
     size: float = Field(ge=0)
     is_downloadable: bool
 

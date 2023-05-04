@@ -1,32 +1,18 @@
-import uuid
+import logging
+import os
 
-from src.models.models import User, FileMetaData
+import aiofiles
+from fastapi import UploadFile
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy import insert, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import text
-from typing import List
-import os
+
 from src.core.config import settings
-from datetime import datetime
-import logging
-from sqlalchemy import select, insert
-from .utils import serialize_data, get_creation_date, count_connection_time, uuid_row_to_str
-from fastapi import UploadFile
-import aiofiles
-from sqlalchemy.exc import SQLAlchemyError
-import json
-from fastapi.encoders import jsonable_encoder
+from src.models.models import User
 
-
-async def get_users(model: declarative_base, session: AsyncSession):
-    query = text(f'SELECT * FROM {model.__tablename__}')
-    r = await session.execute(query)
-    try:
-        res = r.all()
-        result = serialize_data(model, res)
-    except SQLAlchemyError:
-        result = {'status': 'something gone wrong'}
-    return jsonable_encoder(result)
+from .utils import (count_connection_time, get_creation_date,
+                    uuid_row_to_str)
 
 
 async def show_services_info(session: AsyncSession) -> dict:
@@ -39,7 +25,7 @@ async def show_services_info(session: AsyncSession) -> dict:
 
 async def connect_to_db(table: declarative_base, session: AsyncSession) -> None:
     query = text(f'SELECT 1 FROM {table.__tablename__}')
-    r = await session.execute(query)
+    await session.execute(query)
 
 
 async def connect_to_repository(repo_path: str) -> None:
@@ -60,13 +46,12 @@ async def create_file_metadata(
         model: declarative_base,
 
 ):
-    # user_id = user.id if user else uuid.uuid4()
     exp = {
             'name': filename,
             'created_at': get_creation_date(out_path),
             'path': out_path,
             'size': os.path.getsize(out_path),
-            'parent_id': user_id,
+            'parent_id': user.id,
          }
     stmt = insert(model).values(exp)
     result = await session.execute(stmt)

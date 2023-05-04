@@ -2,10 +2,11 @@ import uuid
 from typing import Optional
 
 from fastapi import Depends, Request
-from fastapi_users import BaseUserManager, UUIDIDMixin, FastAPIUsers
+from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 
-from src.models.models import User, get_user_db
 from src.core.config import settings
+from src.models.models import User, get_user_db
+
 from .auth_backend import auth_backend
 
 SECRET = settings.secret

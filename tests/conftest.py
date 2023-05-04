@@ -1,23 +1,18 @@
 import asyncio
-from typing import AsyncGenerator
 import os
+from typing import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-#from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
-
-from test_settings import TEST_DB_URL
-# from src.models.models import metadata
-from src.db.db import metadata, get_async_session
-from src.main import app
 import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from test_settings import PATH
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
+from test_settings import PATH, TEST_DB_URL
+
 from src.auth.user_manager import current_active_user, current_user
-
-
+from src.db.db import get_async_session, metadata
+from src.main import app
 
 engine_test = create_async_engine(TEST_DB_URL, echo=True, poolclass=NullPool,)
 async_session_maker = sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)

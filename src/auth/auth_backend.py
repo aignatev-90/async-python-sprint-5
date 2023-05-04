@@ -1,6 +1,7 @@
-from fastapi_users.authentication import AuthenticationBackend, CookieTransport, JWTStrategy
-from src.core.config import settings
+from fastapi_users.authentication import (AuthenticationBackend,
+                                          CookieTransport, JWTStrategy)
 
+from src.core.config import settings
 
 SECRET = settings.secret
 

@@ -1,0 +1,5 @@
+From project directory:
+1. cmd> docker-compose build .
+2. cmd> docker-compose up
+3. ?????????
+4. PROFIT

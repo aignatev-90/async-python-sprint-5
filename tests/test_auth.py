@@ -1,8 +1,10 @@
-import pytest
-from conftest import client
+import json
 from http import HTTPStatus
 from http.cookies import SimpleCookie
-import json
+
+import pytest
+from conftest import client
+
 
 #
 def test_register():
@@ -15,8 +17,6 @@ def test_register():
             "is_superuser": 'false',
             "is_verified": 'false'
         })
-    print(response.text)
-    print(json.loads(response.text))
     assert response.status_code == HTTPStatus.CREATED, 'HTTP status error at user registration test'
 
 
@@ -27,5 +27,4 @@ def test_auth():
             'username': 'user@example.com',
             'password': 'string'
         })
-    print('auth_cookies', client.cookies)
     assert response.status_code == HTTPStatus.OK

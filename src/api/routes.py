@@ -1,43 +1,26 @@
 import logging
 import os.path
-
-from fastapi import APIRouter, Depends, UploadFile, Response
-from fastapi.responses import JSONResponse, FileResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 from http import HTTPStatus
-from src.services.services import (
-    show_services_info, get_users,
-    upload_single_file,
-    create_file_metadata, retrieve_files_data,
-    )
-from src.db.db import get_async_session
-from src.models.models import User, FileMetaData
-from src.auth.user_manager import current_active_user, current_user
-import fastapi_users
-from src.services.utils import check_out_path, get_or_create_path, get_path_to_file
-import json
-from src.models.schemas import ActivityStatus, FileCreate, FilesRead, ErrorMessage
-from sqlalchemy.exc import SQLAlchemyError
-from pydantic import FilePath
 
+from fastapi import APIRouter, Depends, UploadFile
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import FilePath
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.auth.user_manager import current_active_user
+from src.db.db import get_async_session
+from src.models.models import FileMetaData, User
+from src.models.schemas import (ActivityStatus, ErrorMessage, FileCreate,
+                                FilesRead)
+from src.services.services import (create_file_metadata, retrieve_files_data,
+                                   show_services_info, upload_single_file)
+from src.services.utils import (check_out_path, get_or_create_path,
+                                get_path_to_file)
 
 db_error_message = {'message': 'failed to retrieve data from database'}
 
 router = APIRouter()
-
-
-@router.get('/users')
-async def show_users(
-        session: AsyncSession = Depends(get_async_session),
-        user: User = Depends(current_active_user),
-) -> JSONResponse:
-    response = await get_users(model=User, session=session)
-    return JSONResponse(response)
-
-
-@router.get('/user')
-async def get_current_user(user=Depends(current_user)):
-    return f"Hello, {user.email}"
 
 
 @router.get(
@@ -58,7 +41,6 @@ async def show_activity_status(session: AsyncSession = Depends(get_async_session
             status_code=200,
             content={"error_message": "failed to connect to sources"}
         )
-
 
 
 @router.post(
@@ -96,6 +78,7 @@ async def upload_file(
             content=db_error_message
         )
 
+
 @router.get(
     '/files',
     summary='Get uploaded files data',
@@ -117,6 +100,7 @@ async def get_files_data(
             status_code=500,
             content=db_error_message
         )
+
 
 @router.get(
     '/files/download',

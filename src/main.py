@@ -1,28 +1,23 @@
-from fastapi import FastAPI, Depends
-import uvicorn
-import os
-import sys
-from sqlalchemy import insert
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import AsyncSession
+import asyncio
 import logging
 import logging.config
+import os
+import sys
+
+import uvicorn
 import yaml
-import asyncio
+from fastapi import FastAPI
 from watchgod import run_process
 
-#fix import issues
+# fix import issues
 sys.path.insert(0, os.getcwd())
 
 from src.api.routes import router
-from src.core.config import settings
-from src.db.db import get_async_session, engine
-from src.auth.routes import fastapi_users
 from src.auth.auth_backend import auth_backend
-from src.models.schemas import UserRead, UserCreate
+from src.auth.routes import fastapi_users
+from src.core.config import settings
 from src.models.models import init_models
-
-
+from src.models.schemas import UserCreate, UserRead
 
 app = FastAPI(
     title=settings.project_name,
@@ -53,10 +48,6 @@ app.include_router(
     prefix='/api',
     tags=['api']
 )
-
-# @app.on_event('startup')
-# async def startup():
-#     await create(session=sessionmaker(engine, expire_on_commit=False, class_=AsyncSession))
 
 
 def main():

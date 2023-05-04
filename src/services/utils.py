@@ -1,33 +1,12 @@
+import logging
 import os.path
-
-from sqlalchemy.ext.declarative import declarative_base
-from typing import List
-import json
-from fastapi import UploadFile, Depends
 from datetime import datetime
 from pathlib import Path
-import logging
-from uuid import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from src.db.db import get_async_session
+
 from pydantic import FilePath
-
-
-
-def serialize_data(model: declarative_base, data: List[dict]) -> dict:
-    table_name = model.__tablename__
-    d = {table_name: []}
-    cols = []
-
-    for col in model.__table__.columns:
-        cols.append(col.key)
-
-    for obj in data:
-        entry = dict(zip(cols, obj))
-        logging.info('entry', entry)
-        d[table_name].append(entry)
-    return d
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.declarative import declarative_base
 
 
 def get_creation_date(path: str) -> datetime:
@@ -75,7 +54,6 @@ async def get_path_to_file(
         model=model
     )
     return path_to_file
-
 
 
 async def count_connection_time(func: callable, **kwargs) -> tuple:

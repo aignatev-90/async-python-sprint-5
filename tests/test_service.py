@@ -1,9 +1,10 @@
-from httpx import AsyncClient
 import os
-from http import HTTPStatus
-from conftest import client, ac
-from fastapi import UploadFile
 import tempfile
+from http import HTTPStatus
+
+from conftest import ac, client
+from fastapi import UploadFile
+from httpx import AsyncClient
 
 
 async def test_ping(ac: AsyncClient):

@@ -14,7 +14,7 @@ services:
       - PROJECT_HOST=0.0.0.0
       - PROJECT_PORT=8000
       - SECRET=SECRET
-      - STORAGE_PATH=storage
+      - STORAGE_PATH=/usr/local/storage
     depends_on:
       - db
   db:

@@ -1,4 +1,3 @@
-import os
 from pydantic import BaseSettings, Field
 
 pg_def_url = 'postgresql+asyncpg://postgres:postgres@localhost:5432/postgres'
