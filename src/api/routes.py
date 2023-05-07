@@ -29,7 +29,7 @@ router = APIRouter()
     description='Displays time of connection to services used in this API',
     status_code=HTTPStatus.OK,
     response_model=ActivityStatus,
-    responses={404: {'model': ErrorMessage}},
+    responses={HTTPStatus.NOT_FOUND: {'model': ErrorMessage}},
 )
 async def show_activity_status(session: AsyncSession = Depends(get_async_session)):
     try:
@@ -38,7 +38,7 @@ async def show_activity_status(session: AsyncSession = Depends(get_async_session
     except (SQLAlchemyError, FileNotFoundError):
         logging.error('failed to connect to sources at ping endpoint')
         return JSONResponse(
-            status_code=200,
+            status_code=HTTPStatus.OK,
             content={"error_message": "failed to connect to sources"}
         )
 
@@ -51,7 +51,7 @@ async def show_activity_status(session: AsyncSession = Depends(get_async_session
                 'For authorized users only',
     status_code=HTTPStatus.CREATED,
     response_model=FileCreate,
-    responses={500: {'model': ErrorMessage}}
+    responses={HTTPStatus.INTERNAL_SERVER_ERROR: {'model': ErrorMessage}}
 )
 async def upload_file(
         file: UploadFile,
@@ -74,7 +74,7 @@ async def upload_file(
         return response
     except SQLAlchemyError:
         return JSONResponse(
-            status_code=500,
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             content=db_error_message
         )
 
@@ -86,7 +86,7 @@ async def upload_file(
                 ' For authorized users only',
     status_code=HTTPStatus.OK,
     response_model=FilesRead,
-    responses={500: {'model': ErrorMessage}}
+    responses={HTTPStatus.INTERNAL_SERVER_ERROR: {'model': ErrorMessage}}
 )
 async def get_files_data(
         session: AsyncSession = Depends(get_async_session),
@@ -97,7 +97,7 @@ async def get_files_data(
         return response
     except SQLAlchemyError:
         return JSONResponse(
-            status_code=500,
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             content=db_error_message
         )
 
@@ -109,7 +109,7 @@ async def get_files_data(
                 ' For authorized users only',
     status_code=HTTPStatus.OK,
     responses={
-        500: {'model': ErrorMessage},
+        HTTPStatus.INTERNAL_SERVER_ERROR: {'model': ErrorMessage},
     }
 )
 async def download_file(
@@ -122,4 +122,4 @@ async def download_file(
     try:
         return FileResponse(path=path_to_file, media_type='application/octet-stream', filename=filename)
     except SQLAlchemyError:
-        return JSONResponse(status_code=500, content=db_error_message)
+        return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content=db_error_message)

@@ -28,7 +28,7 @@ class FileMetaData(Base):
     path = Column(String(200), nullable=False)
     size = Column(Float(asdecimal=True), nullable=False)
     is_downloadable = Column(String(5), default='True', nullable=False)
-    parent_id = Column(ForeignKey('app_user.id', ondelete='cascade'))
+    parent_id = Column(ForeignKey('app_user.id', ondelete='cascade'), nullable=False)
 
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
