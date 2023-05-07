@@ -3,7 +3,6 @@ version: '3.8'
 services:
   web:
     build: .
-    #command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; mkdir /usr/local/storage; python3 src/main.py'
     volumes:
       - .:/app
     ports:

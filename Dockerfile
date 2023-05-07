@@ -1,9 +1,13 @@
-FROM python:3.11.1-slim
+FROM nginx/unit:1.29.1-python3.11
+
+COPY ./src/core/config.json /docker-entrypoint.d/config.json
+
 WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN apt update && apt install -y python3-pip
 RUN pip install --upgrade pip
 
 COPY requirements.txt .
